@@ -1,12 +1,11 @@
 ---
-author: Kevin Newton (@kddnewton)
-authorURL: https://twitter.com/kddnewton
+authors: kddnewton
 title: Prettier for Ruby goes v1.0 🎉
 ---
 
 After 1500 commits and 50 releases since July 2018, we're happy to announce that we've just released v1.0 of [Prettier for Ruby](https://github.com/prettier/plugin-ruby). In this blog post, we'd like to give a short overview of how the plugin works, its philosophy, and what to expect in the future.
 
-<!--truncate-->
+<!-- truncate -->
 
 ## How does it work?
 

@@ -1,7 +1,6 @@
 "use strict";
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { findVariable } = require("eslint-utils");
+const { findVariable } = require("@eslint-community/eslint-utils");
 const ERROR = "error";
 const SUGGESTION = "suggestion";
 const selector = [
@@ -30,7 +29,7 @@ module.exports = {
     const variables = new Map();
     return {
       [selector](node) {
-        const scope = context.getScope();
+        const scope = context.sourceCode.getScope(node);
         const variable = findVariable(scope, node);
 
         /* istanbul ignore next */

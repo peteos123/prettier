@@ -1,11 +1,5 @@
 "use strict";
 
-const chalk = (x) => x;
-chalk.grey = chalk;
-chalk.red = chalk;
-chalk.bold = chalk;
-chalk.yellow = chalk;
-chalk.blue = chalk;
-chalk.default = chalk;
+const chalk = new Proxy(String, { get: () => chalk });
 
 module.exports = chalk;
