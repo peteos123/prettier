@@ -1,12 +1,9 @@
-"use strict";
-
-const {
-  __debug: { formatAST },
-} = require("prettier-local");
+import prettier from "../../config/prettier-entry.js";
+const { formatAST } = prettier.__debug;
 
 describe("formatAST", () => {
-  const formatExportSpecifier = (specifier) => {
-    const { formatted } = formatAST(
+  const formatExportSpecifier = async (specifier) => {
+    const { formatted } = await formatAST(
       {
         type: "Program",
         body: [
@@ -16,15 +13,15 @@ describe("formatAST", () => {
           },
         ],
       },
-      { parser: "meriyah" }
+      { parser: "meriyah" },
     );
 
     return formatted;
   };
 
-  test("Shorthand specifier", () => {
+  test("Shorthand specifier", async () => {
     expect(
-      formatExportSpecifier({
+      await formatExportSpecifier({
         type: "ExportSpecifier",
         local: {
           type: "Identifier",
@@ -34,13 +31,13 @@ describe("formatAST", () => {
           type: "Identifier",
           name: "specifier2",
         },
-      })
+      }),
     ).toMatchSnapshot();
   });
 
-  test("Shorthand specifier 2", () => {
+  test("Shorthand specifier 2", async () => {
     expect(
-      formatExportSpecifier({
+      await formatExportSpecifier({
         type: "ExportSpecifier",
         local: {
           type: "Identifier",
@@ -52,13 +49,13 @@ describe("formatAST", () => {
           name: "specifier2",
           range: [0, 0],
         },
-      })
+      }),
     ).toMatchSnapshot();
   });
 
-  test("Shorthand specifier 3", () => {
+  test("Shorthand specifier 3", async () => {
     expect(
-      formatExportSpecifier({
+      await formatExportSpecifier({
         type: "ExportSpecifier",
         local: {
           type: "Literal",
@@ -71,13 +68,13 @@ describe("formatAST", () => {
           name: "specifier",
           range: [0, 0],
         },
-      })
+      }),
     ).toMatchSnapshot();
   });
 
-  test("Shorthand specifier 4", () => {
+  test("Shorthand specifier 4", async () => {
     expect(
-      formatExportSpecifier({
+      await formatExportSpecifier({
         type: "ExportSpecifier",
         local: {
           type: "Literal",
@@ -91,7 +88,7 @@ describe("formatAST", () => {
           raw: "'specifier'",
           range: [0, 0],
         },
-      })
+      }),
     ).toMatchSnapshot();
   });
 });
