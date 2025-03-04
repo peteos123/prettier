@@ -1,10 +1,22 @@
-"use strict";
+import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import chalk from "chalk";
+import { outdent } from "outdent";
 
-const path = require("path");
-const fs = require("fs");
-const { default: chalk } = require("../../vendors/chalk.js");
-const { default: tempy } = require("../../vendors/tempy.js");
-const { execaSync } = require("../../vendors/execa.js");
+const createTemporaryDirectory = () => {
+  const directory = path.join(
+    // The following quoted from https://github.com/es-tooling/module-replacements/blob/27d1acd38f19741e31d2eae561a5c8a914373fc5/docs/modules/tempy.md?plain=1#L20-L21, not sure if it's true
+    // MacOS and possibly some other platforms return a symlink from `os.tmpdir`.
+    // For some applications, this can cause problems; thus, we use `realpath`.
+    fs.realpathSync(os.tmpdir()),
+    crypto.randomBytes(16).toString("hex"),
+  );
+  fs.mkdirSync(directory);
+  return directory;
+};
 
 const allowedClients = new Set(["yarn", "npm", "pnpm"]);
 
@@ -39,49 +51,59 @@ function cleanUp() {
   }
 }
 
-module.exports = (packageDir) => {
-  const tmpDir = tempy.directory();
-  directoriesToClean.add(tmpDir);
-  const fileName = execaSync("npm", ["pack"], {
-    cwd: packageDir,
+function installPrettier(packageDirectory) {
+  const temporaryDirectory = createTemporaryDirectory();
+  directoriesToClean.add(temporaryDirectory);
+  const fileName = spawnSync("npm", ["pack"], {
+    cwd: packageDirectory,
+    shell: true,
+    encoding: "utf8",
   }).stdout.trim();
-  const file = path.join(packageDir, fileName);
-  const packed = path.join(tmpDir, fileName);
+  const file = path.join(packageDirectory, fileName);
+  const packed = path.join(temporaryDirectory, fileName);
   fs.copyFileSync(file, packed);
   fs.unlinkSync(file);
 
-  execaSync(client, ["init", "-y"], { cwd: tmpDir });
+  const runNpmClient = (args) =>
+    spawnSync(client, args, { cwd: temporaryDirectory, shell: true });
 
-  let installArguments = [];
+  runNpmClient(client === "pnpm" ? ["init"] : ["init", "-y"]);
+
   switch (client) {
     case "npm":
       // npm fails when engine requirement only with `--engine-strict`
-      installArguments = ["install", packed, "--engine-strict"];
+      runNpmClient(["install", packed, "--engine-strict"]);
       break;
     case "pnpm":
       // Note: current pnpm can't work with `--engine-strict` and engineStrict setting in `.npmrc`
-      installArguments = ["add", packed, "--engine-strict"];
+      runNpmClient(["add", packed, "--engine-strict"]);
       break;
-    default:
+    case "yarn":
       // yarn fails when engine requirement not compatible by default
-      installArguments = ["add", packed];
+      runNpmClient(["config", "set", "nodeLinker", "node-modules"]);
+      runNpmClient(["add", `prettier@file:${packed}`]);
+    // No default
   }
 
-  execaSync(client, installArguments, { cwd: tmpDir });
   fs.unlinkSync(packed);
-
-  const installed = path.join(tmpDir, "node_modules/prettier");
 
   console.log(
     chalk.green(
-      `
-Prettier installed
-  at ${chalk.inverse(installed)}
-  from ${chalk.inverse(packageDir)}
-  with ${chalk.inverse(client)}.
-      `.trim()
-    )
+      outdent`
+        Prettier installed
+          at ${chalk.inverse(temporaryDirectory)}
+          from ${chalk.inverse(packageDirectory)}
+          with ${chalk.inverse(client)}.
+      `,
+    ),
   );
 
-  return installed;
-};
+  fs.writeFileSync(
+    path.join(temporaryDirectory, "index-proxy.mjs"),
+    "export * from 'prettier';",
+  );
+
+  return temporaryDirectory;
+}
+
+export default installPrettier;
