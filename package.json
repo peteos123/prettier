@@ -160,7 +160,7 @@
     "eslint-plugin-n": "17.23.2",
     "eslint-plugin-regexp": "3.0.0",
     "eslint-plugin-simple-import-sort": "12.1.1",
-    "eslint-plugin-unicorn": "62.0.0",
+    "eslint-plugin-unicorn": "63.0.0",
     "esm-utils": "4.4.2",
     "get-port": "7.1.0",
     "gfm-test-suite": "0.0.2",
