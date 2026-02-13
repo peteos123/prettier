@@ -60,7 +60,6 @@ async function buildPlaygroundFiles(version) {
   // Builtin plugins
   for (const fileName of await fastGlob(["plugins/*.mjs"], {
     cwd: path.join(packagesDirectory, "prettier"),
-    ignore: ["plugins/flow*"],
   })) {
     pluginFiles.push(`prettier/${fileName}`);
   }
